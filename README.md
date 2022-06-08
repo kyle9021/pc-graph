@@ -31,7 +31,7 @@ query to enter in the offline mode of ratel:
         }
       }
     }
-    blockDeviceMappings {
+    vm_storage: blockDeviceMappings {
     ebs_volume:  ebs {
         volumeId
       }
