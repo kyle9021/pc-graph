@@ -1,9 +1,9 @@
-version: "3.2"
+version: "3.8"
 services:
   zero:
     image: dgraph/dgraph:latest
     volumes:
-      - /tmp/data:/dgraph
+      - ./tmp/data:/dgraph
     ports:
       - 5080:5080
       - 6080:6080
@@ -12,7 +12,7 @@ services:
   alpha:
     image: dgraph/dgraph:latest
     volumes:
-      - /tmp/data:/dgraph
+      - ./tmp/data:/dgraph
     ports:
       - 8080:8080
       - 9080:9080
@@ -21,4 +21,4 @@ services:
   ratel:
     image: dgraph/ratel
     ports:
-      - 8000:8000
+      - 8001:8000
