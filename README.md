@@ -4,7 +4,7 @@ deployed on Ubuntu 20.04 desktop
 requires jq, docker-compose, curl, bash, and docker. 
 
 ```bash
-git clone https://github.com/kyle9021/dgraph_project
+git clone https://github.com/kyle9021/pc-graph
 cd dgraph_project/
 bash setup.sh
 ```
