@@ -3,10 +3,12 @@
 
 
 source ./func/func.sh
+source ./secrets/secrets
+
 
 printf '\n%s\n%s\n%s\n'  "This script will set up your secrets file in the ./secrets directory and modify the permissions so the user running it will be the only one who can modify the file." \
                           "It will also verify you have the proper dependencies and ensure an api token can be retrieved." \
-                          "It will then deploy dgraph in a non-prod mode along with ratel and alpha using docker compose"
+                          "It will override any existing file you have in the .secrets/secrets directory"
 
 printf '\n%s\n' "Would you like to continue?"
 read -r ANSWER
@@ -107,12 +109,13 @@ fi
 
 
 
-
-printf '%s\n%s\n%s\n%s\n' "#!/bin/sh" \
-                          "PC_APIURL=\"$PC_APIURL\"" \
-                          "PC_ACCESSKEY=\"$PC_ACCESSKEY\"" \
-                          "PC_SECRETKEY=\"$PC_SECRETKEY\"" > "$PATH_TO_SECRETS_FILE"
-
+if [ -z "$PC_SECRETKEY" ] || [ -z "$PC_ACCESSKEY" ] || [ -z "$PC_APIURL" ];
+  then
+    printf '%s\n%s\n%s\n%s\n' "#!/bin/sh" \
+                              "PC_APIURL=\"$PC_APIURL\"" \
+                              "PC_ACCESSKEY=\"$PC_ACCESSKEY\"" \
+                              "PC_SECRETKEY=\"$PC_SECRETKEY\"" > "$PATH_TO_SECRETS_FILE"
+fi
 
 
 chmod 700 ./secrets/secrets
@@ -124,16 +127,17 @@ printf '%s\n\n\n' "beginning dgraph deployment"
 docker-compose up -d
 
 
-printf '\n\n%s\n\n\n\%s\n\n\n' "dgraph, ratel, and alpha are up" \
-                               "starting etl"
+printf '%s\n\n\n%s\n\n\n%s\n\n' 'dgraph, ratel, and alpha are up!' 'Starting etl...' 'This could take a while to retrieve the data from Prisma Cloud'
+
 sleep 5
+
 {
 bash ./etl.sh
 }
 
 
-printf '%s\n\n%s\n\n' "sucess! Enter this query into the ratel dashboard in offline mode. It should be available at http://localhost:8001 : " \
-'{
+GRAPHQL_QUERY=$(cat <<EOF
+{
   vm(func: has(name)){
     rrn
     name
@@ -160,8 +164,19 @@ printf '%s\n\n%s\n\n' "sucess! Enter this query into the ratel dashboard in offl
      sourceResourceName
      destCloudServiceName
     }
+    vulnerability {
+      normalizedName
+    }
   }
-}'
+}
+EOF
+)
+
+printf '\n\n\n%s\n\n%s\n\n\n%s\n\n\n%s\n\n' 'Ready! Open a browser and navigate to: http://localhost:8001/?local' \
+                                            'Copy and paste the query below in the query section and then hit run:' \
+                                            "$GRAPHQL_QUERY" \
+                                            'Make sure to hit the expand all nodes and to look at the legend in the bottom. You can now start applying filters'
+
 
 
 exit
