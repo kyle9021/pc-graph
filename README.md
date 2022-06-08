@@ -39,4 +39,5 @@ query to enter in the offline mode of ratel:
      destCloudServiceName
     }
   }
-}```
+}
+```
