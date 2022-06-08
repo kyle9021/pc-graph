@@ -82,10 +82,10 @@ IAM_QUERY_RESPONSE=$(curl --request POST \
                           --data "$IAM_QUERY")
 quick_check "/api/v1/permission"
 
-done
-
 # dumps the IAM query response to a temp json file
 printf '%s' "$IAM_QUERY_RESPONSE" |jq '.data.items[]' >> "$JSON_LOCATION/temp_iam.json"
+done
+
 
 # combines the two responses together on the name of the vm and the name of the source permissions, then does a transform before loading into dgraph
 printf '%s' "$CONFIG_RESPONSE" | jq '[.data.items[] | {name: .name, uid: ("_:" + .name), rrn: .rrn, imageId: .data.imageId, state: .data.state, licenses: .data.licenses, tags: .data.tags, networkInterfaces: .data.networkInterfaces, blockDeviceMappings: .data.blockDeviceMappings} ]| map({name, uid, rrn, imageId, state, licenses, tags, networkInterfaces, blockDeviceMappings, iam: [(.name as $name | $iamdata |..| select(.sourceResourceName? and .sourceResourceName==$name))]})' --slurpfile iamdata "$JSON_LOCATION/temp_iam.json" | jq '[.[] | {name: .name, uid: .uid, rrn: .rrn, uid2: ("_:" + .rrn), imageId: .imageId, uid3: ("_:" + .imageId), networkInterfaces: [.networkInterfaces[] | {vpcId: .vpcId, uid4: ("_:" + .vpcId), groups: [.groups[] | {groupId: .groupId, uid5: ("_:" + .groupId), groupName: .groupName, uid6: ("_:" + .groupName)} ], status: .status, ownerId: .ownerId, uid7: ("_:" + .ownerId), attachment: {status: .attachment.status, attachTime: .attachment.attachTime, attachmentId: .attachment.attachmentId, uid8: ("_:" + .attachment.attachmentId), networkCardIndex: .attachment.networkCardIndex, deleteOnTermination: .attachment.deleteOnTermination}, macAddress: .macAddress, uid9: ("_:" + .macAddress), interfaceType: .interfaceType, ipv6Addresses: .ipv6Addresses , privateDnsName: .privateDnsName, uid10: ("_:" + .privateDnsName), sourceDestCheck: .sourceDestCheck, privateIpAddress: .privateIpAddress, networkInterfaceId: .networkInterfaceId, uid11: ("_:" + .networkInterfaceId ), privateIpAddresses: [.privateIpAddresses[] | {primary: .primary, privateDnsName: .privateDnsName, privateIpAddress: .privateIpAddress, association: {publicIp: .association.publicIp?, ipOwnerId: .association.ipOwnerId?, publicDnsName: .association.publicDnsName?}} ] }], blockDeviceMappings: [.blockDeviceMappings[] | {ebs: {status: .ebs.status, volumeId: .ebs.volumeId, uid12: ("_:" + .ebs.volumeId), attachTime: .ebs.attachTime, deleteOnTermination: .ebs.deleteOnTermination}} ], iam: .iam} ] | {set: . }' > "$JSON_LOCATION/done.json"
