@@ -1,4 +1,4 @@
-# PC-Dgraph 
+# PC-Graph
 non-prod ready
 
 * Deployed on Ubuntu 20.04 desktop 
