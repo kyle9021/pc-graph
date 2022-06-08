@@ -12,7 +12,7 @@ cd pc-graph/
 bash setup.sh
 ```
 
-* open browser and go to http://localhost:8001
+* open browser and go to http://localhost:8001/?local
 
 _query to enter in the offline mode of ratel:_
 
