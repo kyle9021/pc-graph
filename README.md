@@ -1,5 +1,8 @@
 # PC-Dgraph 
 
+deployed on Ubuntu 20.04 desktop 
+requires jq, docker-compose, curl, bash, docker. 
+
 ```bash
 git clone <repo>
 cd dgraph_project/
