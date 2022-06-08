@@ -1,7 +1,10 @@
 # PC-Dgraph 
+non-prod ready
 
-deployed on Ubuntu 20.04 desktop 
-requires jq, docker-compose, curl, bash, and docker. 
+* Deployed on Ubuntu 20.04 desktop 
+* Requires jq, docker-compose, curl, bash, and docker
+
+
 
 ```bash
 git clone https://github.com/kyle9021/pc-graph
@@ -9,9 +12,9 @@ cd dgraph_project/
 bash setup.sh
 ```
 
-open browser and go to http://localhost:8001
+* open browser and go to http://localhost:8001
 
-query to enter in the offline mode of ratel:
+_query to enter in the offline mode of ratel:_
 
 ```graphql
 {
