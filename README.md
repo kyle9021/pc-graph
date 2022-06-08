@@ -34,7 +34,7 @@ _query to enter in the offline mode of ratel:_
         }
       }
     }
-    vm_storage: blockDeviceMappings {
+    blockDeviceMappings {
     ebs_volume:  ebs {
         volumeId
       }
@@ -43,6 +43,9 @@ _query to enter in the offline mode of ratel:_
      sourceCloudResourceRrn
      sourceResourceName
      destCloudServiceName
+    }
+    vulnerability {
+      normalizedName
     }
   }
 }
