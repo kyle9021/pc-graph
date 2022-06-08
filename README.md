@@ -8,7 +8,7 @@ non-prod ready
 
 ```bash
 git clone https://github.com/kyle9021/pc-graph
-cd dgraph_project/
+cd pc-graph/
 bash setup.sh
 ```
 
