@@ -25,7 +25,6 @@ _query to enter in the offline mode of ratel:_
     vpc_id:  networkInterfaces {
       vpcId
     security_group:  groups {
-        groupName
         groupId
       }
     network_association:  privateIpAddresses {
