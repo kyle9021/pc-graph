@@ -148,7 +148,7 @@ jq '[.[] | {id: .id, name: .name, uid: .uid, rrn: .rrn, uid2: ("_:" + .rrn), ima
 cat "$JSON_LOCATION/temp_config_iam.json" | jq '. | map({id, name,uid, rrn, uid2,imageId, uid3, networkInterfaces, blockDeviceMappings, iam, vulnerability: [(.id as $id | $vulndata |..| select( .resourceCloudId? and .resourceCloudId==$id ))]})' --slurpfile vulndata "$JSON_LOCATION/temp_vuln.json" | jq '{set: .}' > "$JSON_LOCATION/done.json"
 
 # fixes the key value pairs getting it ready for import to dgraph
-sed -i 's/uid[0-9]{0,9}/uid/g' "$JSON_LOCATION/done.json"
+sed -i 's/uid[0-9]\{0,9\}/uid/g' "$JSON_LOCATION/done.json"
 
 
 # load the data into the alpha mutate endpoint
