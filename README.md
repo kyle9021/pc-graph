@@ -18,7 +18,7 @@ _query to enter in the offline mode of ratel:_
 
 ```graphql
 {
-  vm(func: has(name)){
+  vm(func: has(name), first: 100){
     rrn
     name
     imageId
