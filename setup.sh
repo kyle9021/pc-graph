@@ -109,13 +109,11 @@ fi
 
 
 
-if [ -z "$PC_SECRETKEY" ] || [ -z "$PC_ACCESSKEY" ] || [ -z "$PC_APIURL" ];
-  then
-    printf '%s\n%s\n%s\n%s\n' "#!/bin/sh" \
-                              "PC_APIURL=\"$PC_APIURL\"" \
-                              "PC_ACCESSKEY=\"$PC_ACCESSKEY\"" \
-                              "PC_SECRETKEY=\"$PC_SECRETKEY\"" > "$PATH_TO_SECRETS_FILE"
-fi
+printf '%s\n%s\n%s\n%s\n' "#!/bin/sh" \
+                          "PC_APIURL=\"$PC_APIURL\"" \
+                          "PC_ACCESSKEY=\"$PC_ACCESSKEY\"" \
+                          "PC_SECRETKEY=\"$PC_SECRETKEY\"" > "$PATH_TO_SECRETS_FILE"
+
 
 
 chmod 700 ./secrets/secrets
