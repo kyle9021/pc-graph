@@ -117,7 +117,7 @@ for vm in "${VM_ARRAY[@]}"; do \
 IAM_QUERY=$(cat <<EOF
 {
   "searchId": null,
-  "limit": 100,
+  "limit": 300,
   "query": "config from iam where source.cloud.resource.name = '$vm'"
 }
 EOF
