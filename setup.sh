@@ -143,7 +143,6 @@ GRAPHQL_QUERY=$(cat <<EOF
     vpc_id:  networkInterfaces {
       vpcId
     security_group:  groups {
-        groupName
         groupId
       }
     network_association:  privateIpAddresses {
