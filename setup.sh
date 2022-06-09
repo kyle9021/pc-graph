@@ -136,7 +136,7 @@ bash ./etl.sh
 
 GRAPHQL_QUERY=$(cat <<EOF
 {
-  vm(func: has(name)){
+  vm(func: has(name), first: 100){
     rrn
     name
     imageId
