@@ -1,16 +1,84 @@
 #!/bin/bash
-#------------------------------------------------------------------------------------------------------------------#
-# Written By Kyle Butler
-#
-# REQUIREMENTS: 
-# Requires jq to be installed: 'sudo apt-get install jq'
-#
+# written by Kyle Butler
 
-source ./secrets/secrets
+
 source ./func/func.sh
+source ./secrets/secrets
+
+
+printf '\n%s\n%s\n%s\n'  "This script will set up your secrets file in the ./secrets directory and modify the permissions so the user running it will be the only one who can modify the file." \
+                          "It will also verify you have the proper dependencies and ensure an api token can be retrieved." \
+                          "It will override any existing file you have in the .secrets/secrets directory"
+
+printf '\n%s\n' "Would you like to continue?"
+read -r ANSWER
+
+if [ "$ANSWER" != "${ANSWER#[Yy]}" ]
+  then
+    printf '\n%s\n\n' "checking dependencies..."
+  else
+    exit
+fi
+
+if ! command -v jq > /dev/null 2>&1; then
+    printf '\n%s\n%s\n' "ERROR: Jq is not available." \
+                        "These scripts require jq, please install and try again."
+    exit 1
+fi
+
+if ! command -v curl -V > /dev/null 2>&1; then
+      printf '\n%s\n%s\n' "ERROR: curl is not available." \
+                          "These scripts require jq, please install and try again."
+      exit 1
+fi
+
+if ! docker info > /dev/null 2>&1
+  then
+    printf '%s\n%s\n' "ERROR: docker is not available or not runnning." \
+                      "This script requires docker, please install and try again."
+    exit 1
+fi
+if ! docker-compose version > /dev/null 2>&1
+  then
+    printf '%s\n%s\n' "ERROR: docker-compose is not available or not runnning." \
+                      "This script requires docker-compose, please install and try again."
+    exit 1
+fi
 
 
 
+printf '\n%s\n\n' "dependency check passed...checking secret file"
+
+
+
+
+PATH_TO_SECRETS_FILE="./secrets/secrets"
+
+if [ ! -f "$PATH_TO_SECRETS_FILE" ]
+  then
+      printf '\n%s\n' "creating secrets file"
+      touch $PATH_TO_SECRETS_FILE
+fi
+
+
+if [ -z "$PC_SECRETKEY" ] || [ -z "$PC_ACCESSKEY" ] || [ -z "$PC_APIURL" ];
+  then
+        printf '\n%s\n' "Is it okay to reconfigure the ./secrets/secrets file?"
+        read -r VERIFY
+        if [ "$VERIFY" != "${VERIFY#[Yy]}" ]
+          then
+            printf '\n%s\n\n' "checking variable assignement..."
+          else
+            exit
+        fi
+        printf '\n%s\n' "enter your prisma cloud access key id:"
+        read -r PC_ACCESSKEY
+        printf '\n%s\n' "enter your prisma cloud secret key id:"
+        read -r -s PC_SECRETKEY
+        printf '\n%s\n' "enter your prisma cloud api url (found here https://prisma.pan.dev/api/cloud/api-urls):"
+        read -r PC_APIURL
+        pce-var-check
+fi
 
 AUTH_PAYLOAD=$(cat <<EOF
 {"username": "$PC_ACCESSKEY", "password": "$PC_SECRETKEY"}
@@ -18,147 +86,97 @@ EOF
 )
 
 
-PC_JWT_RESPONSE=$(curl --request POST \
+PC_JWT_RESPONSE=$(curl -s --request POST \
                        --url "$PC_APIURL/login" \
                        --header 'Accept: application/json; charset=UTF-8' \
                        --header 'Content-Type: application/json; charset=UTF-8' \
                        --data "${AUTH_PAYLOAD}")
 
-quick_check "/login"
-
 
 PC_JWT=$(printf %s "$PC_JWT_RESPONSE" | jq -r '.token' )
 
-CONFIG_SEARCH=$(cat <<EOF
+
+if [ -z "$PC_JWT" ]
+  then
+      printf '\n%s\n' "Prisma Cloud Enterprise CSPM api token not retrieved, have you verified the expiration date of the access key and secret key? Have you verified connectivity to the url provided? Troubleshoot and then you'll need to run this script again"
+      exit 1
+  else
+     printf '\n%s\n' "Token retrieved, access key, secret key, and prisma cloud enterprise edition api url are valid"
+fi
+
+
+
+
+
+
+if [ -z "$PC_SECRETKEY" ] || [ -z "$PC_ACCESSKEY" ] || [ -z "$PC_APIURL" ];
+  then
+    printf '%s\n%s\n%s\n%s\n' "#!/bin/sh" \
+                              "PC_APIURL=\"$PC_APIURL\"" \
+                              "PC_ACCESSKEY=\"$PC_ACCESSKEY\"" \
+                              "PC_SECRETKEY=\"$PC_SECRETKEY\"" > "$PATH_TO_SECRETS_FILE"
+fi
+
+
+chmod 700 ./secrets/secrets
+
+
+printf '%s\n\n\n' "beginning dgraph deployment"
+
+
+docker-compose up -d
+
+
+printf '%s\n\n\n%s\n\n\n%s\n\n' 'dgraph, ratel, and alpha are up!' 'Starting etl...' 'This could take a while to retrieve the data from Prisma Cloud'
+
+sleep 5
+
 {
-  "query":"config from cloud.resource where api.name = 'aws-ec2-describe-instances'",
-  "timeRange":{
-     "type":"relative",
-     "value":{
-        "unit":"hour",
-        "amount":24
-     }
+bash ./etl.sh
+}
+
+
+GRAPHQL_QUERY=$(cat <<EOF
+{
+  vm(func: has(name)){
+    rrn
+    name
+    imageId
+    vpc_id:  networkInterfaces {
+      vpcId
+    security_group:  groups {
+        groupName
+        groupId
+      }
+    network_association:  privateIpAddresses {
+      publicIp:  association {
+          publicIp
+        }
+      }
+    }
+    blockDeviceMappings {
+    ebs_volume:  ebs {
+        volumeId
+      }
+    }
+    iam_permissions: iam {
+     sourceCloudResourceRrn
+     sourceResourceName
+     destCloudServiceName
+    }
+    vulnerability {
+      normalizedName
+    }
   }
 }
 EOF
 )
 
-CONFIG_RESPONSE=$(curl --request POST \
-                       --url "$PC_APIURL/search/config" \
-                       --header 'content-type: application/json; charset=UTF-8' \
-                       --header "x-redlock-auth: $PC_JWT" \
-                       --data "$CONFIG_SEARCH")
+printf '\n\n\n%s\n\n%s\n\n\n%s\n\n\n%s\n\n' 'Ready! Open a browser and navigate to: http://localhost:8001/?local' \
+                                            'Copy and paste the query below in the query section and then hit run:' \
+                                            "$GRAPHQL_QUERY" \
+                                            'Make sure to hit the expand all nodes and to look at the legend in the bottom. You can now start applying filters'
 
-
-quick_check "/search/config"
-
-printf '%s' "$CONFIG_RESPONSE" > './json/temp_config.json'
-VULN_SEARCH=$(cat <<EOF
-{
-  "query":"config from cloud.resource where api.name = 'aws-ec2-describe-instances' AND finding.type IN ( 'Host Vulnerability' )",
-  "timeRange":{
-     "type":"relative",
-     "value":{
-        "unit":"hour",
-        "amount":24
-     }
-  }
-}
-EOF
-)
-
-VULN_RESPONSE=$(curl --request POST \
-                       --url "$PC_APIURL/search/config" \
-                       --header 'content-type: application/json; charset=UTF-8' \
-                       --header "x-redlock-auth: $PC_JWT" \
-                       --data "$VULN_SEARCH")
-
-quick_check "/search/config"
-
-
-JSON_LOCATION=./json
-VULN_RRN_ARRAY=( $(printf '%s' "$VULN_RESPONSE" | jq -r '.data.items[].rrn') )
-
-
-for rrn in "${VULN_RRN_ARRAY[@]}"; do \
-VULN_PAYLOAD=$(cat <<EOF
-{
- "rrn": "$rrn",
- "findingType":[],
- "riskFactors":[]
-}
-EOF
-)
-
-
-VULN_FINDINGS=$(curl --request POST \
-                     --url "$PC_APIURL/resource/external_finding" \
-                     --header 'content-type: application/json; charset=UTF-8' \
-                     --header 'accept: application/json, text/plain, */*' \
-                     --header "x-redlock-auth: $PC_JWT" \
-                     --data-raw "$VULN_PAYLOAD")
-
-quick_check "/resource/external_finding"
-
-printf '%s' "$VULN_FINDINGS" | jq '.[] | {normalizedName: .normalizedName, riskFactors: .riskFactors, findingId: .findingId, source: .source, severity: .severity, status: .status, resourceCloudId: .resourceCloudId}' >> "$JSON_LOCATION/temp_vuln.json"
-
-done
-
-#printf '%s' "$CONFIG_RESPONSE" > $JSON_LOCATION/temp_vm.json
-
-# creates an array of vm names
-VM_ARRAY=( $(printf '%s' "$CONFIG_RESPONSE" | jq -r '.data.items[].name') )
-
-
-
-
-# makes a request of the permissions api endpoint to see if any of the vms in the array have permissions which are attached to them. 
-for vm in "${VM_ARRAY[@]}"; do \
-IAM_QUERY=$(cat <<EOF
-{
-  "searchId": null,
-  "limit": 100,
-  "query": "config from iam where source.cloud.resource.name = '$vm'"
-}
-EOF
-)
-
-IAM_QUERY_RESPONSE=$(curl --request POST \
-                          --url "$PC_APIURL/api/v1/permission" \
-                          --header 'content-type: application/json; charset=UTF-8' \
-                          --header 'accept: application/json' \
-                          --header "x-redlock-auth: $PC_JWT" \
-                          --data "$IAM_QUERY")
-quick_check "/api/v1/permission"
-
-
-# dumps the IAM query response to a temp json file
-printf '%s' "$IAM_QUERY_RESPONSE" |jq '.data.items[]' >> "$JSON_LOCATION/temp_iam.json"
-
-
-done
-
-# combines the responses from the iam query and the config query on the name of the ec2 instance and the .sourceResourceName from the iam query. starts the transform
-printf '%s' "$CONFIG_RESPONSE" | jq '[.data.items[] | {id: .id, name: .name, uid: ("_:" + .name), rrn: .rrn, imageId: .data.imageId, state: .data.state, licenses: .data.licenses, tags: .data.tags, networkInterfaces: .data.networkInterfaces, blockDeviceMappings: .data.blockDeviceMappings} ]| map({id, name, uid, rrn, imageId, state, licenses, tags, networkInterfaces, blockDeviceMappings, iam: [(.name as $name | $iamdata |..| select(.sourceResourceName? and .sourceResourceName==$name))]})' --slurpfile iamdata "$JSON_LOCATION/temp_iam.json" |\
-
-jq '[.[] | {id: .id, name: .name, uid: .uid, rrn: .rrn, uid2: ("_:" + .rrn), imageId: .imageId, uid3: ("_:" + .imageId), networkInterfaces: [.networkInterfaces[] | {vpcId: .vpcId, uid4: ("_:" + .vpcId), groups: [.groups[] | {groupId: .groupId, uid5: ("_:" + .groupId), groupName: .groupName, uid6: ("_:" + .groupName)} ], status: .status, ownerId: .ownerId, uid7: ("_:" + .ownerId), attachment: {status: .attachment.status, attachTime: .attachment.attachTime, attachmentId: .attachment.attachmentId, uid8: ("_:" + .attachment.attachmentId), networkCardIndex: .attachment.networkCardIndex, deleteOnTermination: .attachment.deleteOnTermination}, macAddress: .macAddress, uid9: ("_:" + .macAddress), interfaceType: .interfaceType, ipv6Addresses: .ipv6Addresses , privateDnsName: .privateDnsName, uid10: ("_:" + .privateDnsName), sourceDestCheck: .sourceDestCheck, privateIpAddress: .privateIpAddress, networkInterfaceId: .networkInterfaceId, uid11: ("_:" + .networkInterfaceId ), privateIpAddresses: [.privateIpAddresses[] | {primary: .primary, privateDnsName: .privateDnsName, privateIpAddress: .privateIpAddress, association: {publicIp: .association.publicIp?, ipOwnerId: .association.ipOwnerId?, publicDnsName: .association.publicDnsName?}} ] }], blockDeviceMappings: [.blockDeviceMappings[] | {ebs: {status: .ebs.status, volumeId: .ebs.volumeId, uid12: ("_:" + .ebs.volumeId), attachTime: .ebs.attachTime, deleteOnTermination: .ebs.deleteOnTermination}} ], iam: .iam} ]' > "$JSON_LOCATION/temp_config_iam.json"
-
-
-# combines the three responses together and merges the json on the id from the config response and the resourceCloudId on the vulnerability response
-cat "$JSON_LOCATION/temp_config_iam.json" | jq '. | map({id, name,uid, rrn, uid2,imageId, uid3, networkInterfaces, blockDeviceMappings, iam, vulnerability: [(.id as $id | $vulndata |..| select( .resourceCloudId? and .resourceCloudId==$id ))]})' --slurpfile vulndata "$JSON_LOCATION/temp_vuln.json" | jq '{set: .}' > "$JSON_LOCATION/done.json"
-
-# fixes the key value pairs getting it ready for import to dgraph
-sed -i 's/uid[0-9]{0,9}/uid/g' "$JSON_LOCATION/done.json"
-
-
-# load the data into the alpha mutate endpoint
-curl -H "content-type: application/json" \
-     -X POST \
-     --url "localhost:8080/mutate?commitNow=true" \
-     --data-binary @"$JSON_LOCATION/done.json"
-
-
-quick_check "/mutate?/commitNow=true"
 
 
 exit
