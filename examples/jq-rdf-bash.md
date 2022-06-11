@@ -5,5 +5,11 @@ Take the `.id` from the ec2 instance as the subject, `<name>` as the predicate, 
 RDF subject, predicate, object
 
 ```bash
-cat temp_config.json | jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' | tr -d \'
+cat ./json/temp_config.json | jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' | tr -d \'
 ```
+will output
+
+```rdf
+_:i-0caEXAMPLE <name> "test-ebs" .
+````
+
