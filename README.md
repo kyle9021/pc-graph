@@ -4,7 +4,7 @@ non-prod ready
 * Deployed on Ubuntu 20.04 desktop 
 * Requires jq, docker-compose, curl, bash, and docker
 
-See the [Example writeup](./examples/jq-rdf-bash.md) for where I'd like to go with this
+
 
 
 ```bash
@@ -50,3 +50,4 @@ _query to enter in the offline mode of ratel:_
   }
 }
 ```
+See the [Example writeup](./examples/jq-rdf-bash.md) for where I'd like to go with this
