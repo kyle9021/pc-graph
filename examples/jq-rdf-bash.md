@@ -1,3 +1,5 @@
+Assuming you'd do the below activity from root directory of this project after running the setup.sh script
+
 First run this:
 
 ```bash
