@@ -5,6 +5,7 @@ non-prod ready
 * Requires jq, docker-compose, curl, bash, and docker
 
 
+## Setup:
 
 
 ```bash
