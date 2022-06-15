@@ -55,3 +55,28 @@ curl -H "Content-Type: application/rdf" \
            }'
 ```
 
+So my simple script as an example might look something like this:
+
+```bash
+#!/bin/bash
+
+payload=$(cat <<EOF
+{
+  set {
+$(cat ./json/temp_config.json | jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' | tr -d \')
+       }
+}
+EOF
+)
+
+curl -H "Content-Type: application/rdf" \
+     -X POST \
+     --url localhost:8080/mutate?commitNow=true \
+     --data-binary "$payload"
+```
+
+
+
+
+
+
