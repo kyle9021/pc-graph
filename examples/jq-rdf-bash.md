@@ -4,7 +4,7 @@ First run this:
 cat ./json/temp_config.json | jq -r '.data.items[] | {name: .name, id: .id}'
 ```
 
-We can see the relationship between the `"name"`  ec2 instance: `"ec2instancename_example"` and the instance `"id"` represented in json format. Something like this: 
+We can see the relationship between the `"name"` of the ec2 instance `"ec2instancename_example"` and the instance `"id"` represented in json format. Something like this: 
 
 ```json
 {
