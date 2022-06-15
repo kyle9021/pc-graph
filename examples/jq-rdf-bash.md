@@ -63,7 +63,9 @@ So my simple script as an example might look something like this:
 payload=$(cat <<EOF
 {
   set {
-$(cat ./json/temp_config.json | jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' | tr -d \')
+      $(cat ./json/temp_config.json | \
+      jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' |\
+      tr -d \')
        }
 }
 EOF
