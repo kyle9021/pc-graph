@@ -29,6 +29,8 @@ Below is a one line code example where we take the id from the ec2 vm `i-awsinst
 RDF: subject, predicate, object
 This shows the relationship between the subject and the object by the predicate. 
 
+Running:
+
 ```bash
 cat ./json/temp_config.json | jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' | tr -d \'
 ```
