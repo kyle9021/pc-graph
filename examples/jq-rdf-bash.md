@@ -24,9 +24,10 @@ _:subject <predicate> "object"
 
 see https://dgraph.io/docs/mutations/triples/ for more examples
 
-Below is a oneline code example where we take id from the ec2 instance `i-awsinstanceid` as the subject,  the key `"name"` as the predicate, and the ec2 instance name `ec2instancename_example` as the object.
+Below is a one line code example where we take the id from the ec2 vm `i-awsinstanceid` as the subject,  the key `"name"` as the predicate, and the ec2 instance name `ec2instancename_example` as the object.
 
 RDF: subject, predicate, object
+This shows the relationship between the subject and the object by the predicate. 
 
 ```bash
 cat ./json/temp_config.json | jq -r '.data.items[] |[( "_:"  + .id ), "<name>", ("\"" + .name + "\" ." )]|@sh' | tr -d \'
