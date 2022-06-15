@@ -44,7 +44,8 @@ Which can then be easily loaded into dgraph using a request like this:
 
 ```bash
 curl -H "Content-Type: application/rdf" \
-     -X POST localhost:8080/mutate?commitNow=true \
+     -X POST \
+     --url localhost:8080/mutate?commitNow=true \
      -d $'{
            set {
                  _:i-awsinstanceid <name> "i-awsinstanceid" .
