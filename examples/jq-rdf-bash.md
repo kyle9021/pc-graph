@@ -40,7 +40,7 @@ will output:
 
 ```rdf
 ...
-_:i-awsinstanceid <name> "i-awsinstanceid" .
+_:i-awsinstanceid <name> "ec2instancename_example" .
 ...
 ````
 
@@ -52,7 +52,7 @@ curl -H "Content-Type: application/rdf" \
      --url localhost:8080/mutate?commitNow=true \
      -d $'{
            set {
-                 _:i-awsinstanceid <name> "i-awsinstanceid" .
+                 _:i-awsinstanceid <name> "ec2instancename_example" .
                }
            }'
 ```
