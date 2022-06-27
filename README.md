@@ -2,6 +2,19 @@
 
 ![screen_shot](./img/screen_shot.png)
 
+
+Pulls from the Prisma Cloud API all the aws ec2 instances and the following associated data points:
+
+* vulnerablities
+* public ip addresses
+* security groups
+* vpcs
+* ebs volumes
+* iam permissions
+* and more
+
+Allows you to visualize and explore the data through a GraphQL interface with a backend Graph database. 
+
 non-prod ready
 
 * Deployed on Ubuntu 20.04 desktop 
