@@ -142,6 +142,8 @@ cat ./json/iam/* | jq '.data.items[]?' > "$JSON_LOCATION/temp_iam.json"
 wait
 rm ./json/iam/*
 
+printf '%s\n' "Getting the data ready for import..."
+
 
 
 
@@ -158,6 +160,7 @@ cat "$JSON_LOCATION/temp_config_iam.json" | jq '. | map({id, name,uid, rrn, uid2
 # fixes the key value pairs getting it ready for import to dgraph
 sed -i 's/uid[0-9]\{0,9\}/uid/g' "$JSON_LOCATION/done.json"
 
+printf '%s\n' "Transform finished! Importing to dgraph"
 
 # load the data into the alpha mutate endpoint
 curl -H "content-type: application/json" \
@@ -167,6 +170,6 @@ curl -H "content-type: application/json" \
 
 
 quick_check "/mutate?/commitNow=true"
-
+printf '%s\n' "Data loaded"
 
 exit
