@@ -11,7 +11,7 @@ source ./func/func.sh
 
 
 
-
+JSON_LOCATION=./json
 AUTH_PAYLOAD=$(cat <<EOF
 {"username": "$PC_ACCESSKEY", "password": "$PC_SECRETKEY"}
 EOF
@@ -52,7 +52,7 @@ CONFIG_RESPONSE=$(curl --request POST \
 
 quick_check "/search/config"
 
-printf '%s' "$CONFIG_RESPONSE" > './json/temp_config.json'
+printf '%s' "$CONFIG_RESPONSE" > "$JSON_LOCATION/temp_config.json"
 VULN_SEARCH=$(cat <<EOF
 {
   "query":"config from cloud.resource where api.name = 'aws-ec2-describe-instances' AND finding.type IN ( 'Host Vulnerability' )",
@@ -76,14 +76,14 @@ VULN_RESPONSE=$(curl --request POST \
 quick_check "/search/config"
 
 
-JSON_LOCATION=./json
 VULN_RRN_ARRAY=( $(printf '%s' "$VULN_RESPONSE" | jq -r '.data.items[].rrn') )
 
+printf '%s\n' "Pulling vulnerability data..."
 
-for rrn in "${VULN_RRN_ARRAY[@]}"; do \
+for rrn in "${!VULN_RRN_ARRAY[@]}"; do \
 VULN_PAYLOAD=$(cat <<EOF
 {
- "rrn": "$rrn",
+ "rrn": "${VULN_RRN_ARRAY[rrn]}",
  "findingType":[],
  "riskFactors":[]
 }
@@ -91,52 +91,60 @@ EOF
 )
 
 
-VULN_FINDINGS=$(curl --request POST \
-                     --url "$PC_APIURL/resource/external_finding" \
-                     --header 'content-type: application/json; charset=UTF-8' \
-                     --header 'accept: application/json, text/plain, */*' \
-                     --header "x-redlock-auth: $PC_JWT" \
-                     --data-raw "$VULN_PAYLOAD")
-
-quick_check "/resource/external_finding"
-
-printf '%s' "$VULN_FINDINGS" | jq '.[] | {normalizedName: .normalizedName, riskFactors: .riskFactors, findingId: .findingId, source: .source, severity: .severity, status: .status, resourceCloudId: .resourceCloudId}' >> "$JSON_LOCATION/temp_vuln.json"
+curl -s --request POST \
+     --url "$PC_APIURL/resource/external_finding" \
+     --header 'content-type: application/json; charset=UTF-8' \
+     --header 'accept: application/json, text/plain, */*' \
+     --header "x-redlock-auth: $PC_JWT" \
+     --data-raw "$VULN_PAYLOAD" > "$JSON_LOCATION/vuln_data/$(printf '%03d' "$rrn").json" &
 
 done
+wait
 
-#printf '%s' "$CONFIG_RESPONSE" > $JSON_LOCATION/temp_vm.json
+printf '%s\n' "Vulnerability data pulled...."
+cat ./json/vuln_data/* | jq '.[] | {normalizedName: .normalizedName, riskFactors: .riskFactors, findingId: .findingId, source: .source, severity: .severity, status: .status, resourceCloudId: .resourceCloudId}' > "$JSON_LOCATION/temp_vuln.json"
+wait
+rm ./json/vuln_data/*
+
 
 # creates an array of vm names
 VM_ARRAY=( $(printf '%s' "$CONFIG_RESPONSE" | jq -r '.data.items[].name') )
 
 
 
-
+printf '%s\n' "Pulling IAM permission data...."
 # makes a request of the permissions api endpoint to see if any of the vms in the array have permissions which are attached to them. 
-for vm in "${VM_ARRAY[@]}"; do \
+for vm in "${!VM_ARRAY[@]}"; do \
+
+
+
 IAM_QUERY=$(cat <<EOF
 {
   "searchId": null,
   "limit": 300,
-  "query": "config from iam where source.cloud.resource.name = '$vm'"
+  "query": "config from iam where source.cloud.resource.name = '${VM_ARRAY[vm]}'"
 }
 EOF
 )
 
-IAM_QUERY_RESPONSE=$(curl --request POST \
-                          --url "$PC_APIURL/api/v1/permission" \
-                          --header 'content-type: application/json; charset=UTF-8' \
-                          --header 'accept: application/json' \
-                          --header "x-redlock-auth: $PC_JWT" \
-                          --data "$IAM_QUERY")
-quick_check "/api/v1/permission"
-
-
-# dumps the IAM query response to a temp json file
-printf '%s' "$IAM_QUERY_RESPONSE" |jq '.data.items[]?' >> "$JSON_LOCATION/temp_iam.json"
-
+curl -s --request POST \
+     --url "$PC_APIURL/api/v1/permission" \
+     --header 'content-type: application/json; charset=UTF-8' \
+     --header 'accept: application/json' \
+     --header "x-redlock-auth: $PC_JWT" \
+     --data "$IAM_QUERY" > "$JSON_LOCATION/iam/$(printf '%05d' "$vm").json" &
 
 done
+
+wait
+printf '%s\n' "IAM permission data pulled"
+cat ./json/iam/* | jq '.data.items[]?' > "$JSON_LOCATION/temp_iam.json"
+wait
+rm ./json/iam/*
+
+
+
+
 
 # combines the responses from the iam query and the config query on the name of the ec2 instance and the .sourceResourceName from the iam query. starts the transform
 printf '%s' "$CONFIG_RESPONSE" | jq '[.data.items[] | {id: .id, name: .name, uid: ("_:" + .name), rrn: .rrn, imageId: .data.imageId, state: .data.state, licenses: .data.licenses, tags: .data.tags, networkInterfaces: .data.networkInterfaces, blockDeviceMappings: .data.blockDeviceMappings} ]| map({id, name, uid, rrn, imageId, state, licenses, tags, networkInterfaces, blockDeviceMappings, iam: [(.name as $name | $iamdata |..| select(.sourceResourceName? and .sourceResourceName==$name))]})' --slurpfile iamdata "$JSON_LOCATION/temp_iam.json" |\
