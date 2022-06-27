@@ -96,7 +96,7 @@ curl -s --request POST \
      --header 'content-type: application/json; charset=UTF-8' \
      --header 'accept: application/json, text/plain, */*' \
      --header "x-redlock-auth: $PC_JWT" \
-     --data-raw "$VULN_PAYLOAD" > "$JSON_LOCATION/vuln_data/$(printf '%03d' "$rrn").json" &
+     --data-raw "$VULN_PAYLOAD" > "$JSON_LOCATION/vuln_data/$(printf '%05d' "$rrn").json" &
 
 done
 wait
