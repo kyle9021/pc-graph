@@ -1,7 +1,5 @@
 # PC-Graph
-
-![screen_shot](./img/screen_shot.png)
-
+[![CodeFactor](https://www.codefactor.io/repository/github/kyle9021/pc-graph/badge)](https://www.codefactor.io/repository/github/kyle9021/pc-graph)
 
 Pulls from the Prisma Cloud API all the aws ec2 instances and the following associated data points:
 
@@ -14,6 +12,8 @@ Pulls from the Prisma Cloud API all the aws ec2 instances and the following asso
 * and more
 
 Allows you to visualize and explore the data through a GraphQL interface with a backend Graph database. 
+
+![screen_shot](./img/screen_shot.png)
 
 non-prod ready
 
