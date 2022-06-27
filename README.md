@@ -1,4 +1,7 @@
 # PC-Graph
+
+![screen_shot](./img/screen_shot.png)
+
 non-prod ready
 
 * Deployed on Ubuntu 20.04 desktop 
