@@ -39,7 +39,7 @@ bash setup.sh
 * Check the box "Also drop Schema and Types" and in text field type `DROP ALL` and click "drop all"
 * After the data has been cleared `bash waas_policy_etl.sh`
 
-![WAAS_POLICY_GRAPH](./img/WAAS_POLICY_GRAPH.png)
+![WAAS_POLICY_GRAPH](./img/WAAS_POLICY_GRAPH2.png)
 
 Above we can see the relationship between collections of assets, WAAS rules, api endpoints, request methods, etc. 
 
