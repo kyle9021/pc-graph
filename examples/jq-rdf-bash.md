@@ -27,7 +27,7 @@ sed -i 's/uid[0-9]\{0,9\}/uid/g' ./load.json
 Now we can load this file into dgraph by sending a request with curl like this: 
 
 ```bash
-curl -H "Content-Type: application/rdf" \
+curl -H "Content-Type: application/json" \
      -X POST \
      --url localhost:8080/mutate?commitNow=true \
      --data-binary @'load.json'  
