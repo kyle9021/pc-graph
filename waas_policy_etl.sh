@@ -67,7 +67,8 @@ WAAS_POLICY_RESPONSE=$(curl --request GET \
 
 quick_check "/api/v1/policies/firewall/app/container?project=Central+Console"
 
-printf '%s' "$WAAS_POLICY_RESPONSE" | jq '{set: .rules} | {set: [.set[]| {modified: .modified, owner: .owner,ruleName: .name, uid: ("_:" + .name), previousName: .previousName, collections: .collections, applicationsSpec: [.applicationsSpec[] |{appID: .appID, uid2: ("_:" + .appID), banDurationMinutes: .banDurationMinutes, certificate: .certificate, tlsConfig: .tlsConfig, dosConfig: .dosConfig | {enabled: .enabled, alert: .alert, ban: .ban}, apiSpec: .apiSpec | {endpoints: .endpoints, paths: [.paths[]? | {requestPath: .path, methods: .methods[]? |{requestMethod: .method, parameters: [.parameters[]?]}}], effect: .effect, fallbackEffect: .fallbackEffect, queryParamFallbackEffect: .queryParamFallbackEffect, skipLearning: .skipLearning}, botProtectionSpec: .botProtectionSpec, networkControls: .networkControls, body: .body, intelGathering: .intelGathering, maliciousUpload: .maliciousUpload, csrfEnabled: .csrfEnabled, clickjackingEnabled: .clickjackingEnabled, sqli: .sqli, lfi: .lfi, codeInjection: .codeInjection, remoteHostForwarding: .remoteHostForwarding} ]}]}' > $JSON_LOCATION/waas.json
+printf '%s' "$WAAS_POLICY_RESPONSE" | jq '{set: .rules} | {set: [.set[]| {modified: .modified, owner: .owner,ruleName: .name, uid: ("_:" + .name), previousName: .previousName, collections: .collections[] |{hosts: .hosts[] |[ {hostName: ., uid3: ("_:" + .)}], images: .images[] |[ {imageName: ., uid4: ("_:" + .)}], labels: .labels[] |[ {labelName: ., uid5: ("_:" + .)}], containers: .containers[] |[ {containerName: ., uid6: ("_:" + .)}], functions: .functions[] |[ {functionName: ., uid7: ("_:" + .)}], namespaces: .namespaces[] |[ {namespaceName: ., uid8: ("_:" + .)}], appIDs: .appIDs[] |[ {appIDName: ., uid9: ("_:" + .)}], accountIDs: .accountIDs[] |[ {accountIDName: ., uid10: ("_:" + .)}], codeRepos: .codeRepos[] |[ {codeRepoName: ., uid11: ("_:" + .)}], clusters: .clusters[] |[ {clusterName: ., uid12: ("_:" + .)}] }, applicationsSpec: [.applicationsSpec[] |{appID: .appID, uid2: ("_:" + .appID), banDurationMinutes: .banDurationMinutes, certificate: .certificate, tlsConfig: .tlsConfig, dosConfig: .dosConfig | {enabled: .enabled, alert: .alert, ban: .ban}, apiSpec: .apiSpec | {endpoints: .endpoints, paths: [.paths[]? | {requestPath: .path, methods: .methods[]? |{requestMethod: .method, parameters: [.parameters[]?]}}], effect: .effect, fallbackEffect: .fallbackEffect, queryParamFallbackEffect: .queryParamFallbackEffect, skipLearning: .skipLearning}, botProtectionSpec: .botProtectionSpec, networkControls: .networkControls, body: .body, intelGathering: .intelGathering, maliciousUpload: .maliciousUpload, csrfEnabled: .csrfEnabled, clickjackingEnabled: .clickjackingEnabled, sqli: .sqli, lfi: .lfi, codeInjection: .codeInjection, remoteHostForwarding: .remoteHostForwarding} ]}]}' > $JSON_LOCATION/waas.json
+
 
 sed -i 's/uid[0-9]\{0,9\}/uid/g' "$JSON_LOCATION/waas.json"
 
@@ -84,10 +85,8 @@ GRAPHQL_QUERY=$(cat <<EOF
   ruleName
   owner
   collections {
-    name
-    owner
     hosts {}
-    images {}
+    images {imageName}
     containers {}
     functions {}
     namespaces {}
@@ -119,3 +118,4 @@ printf '\n\n\n%s\n\n%s\n\n\n%s\n\n\n%s\n\n\n%s' "WAAS policy extracted transform
                                                 'Copy and paste the query below in the query section and then hit run:' \
                                                 "$GRAPHQL_QUERY" \
                                                 'Make sure to hit the expand all nodes and to look at the legend in the bottom. You can now start applying filters'
+
