@@ -31,7 +31,13 @@ bash setup.sh
 ```
 
 * open browser and go to http://localhost:8001/?local
-* if you're interested in understanding the WAAS policies as a graph. In ratel go to schema and click "bulk edit" click the box "Also drop Schema and Types" and then type `DROP ALL` and click "drop all"
+
+### WAAS policy as Graph
+
+
+* Ff you're interested in understanding the WAAS policies in a graphDB go to http://localhost:8001/?local
+* On the lefthand menu click schema and then click "bulk edit".
+* Check the box "Also drop Schema and Types" and in text field type `DROP ALL` and click "drop all"
 * after the data has been cleared `bash waas_policy_etl.sh`
 
 
