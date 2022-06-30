@@ -31,40 +31,9 @@ bash setup.sh
 ```
 
 * open browser and go to http://localhost:8001/?local
+* if you're interested in understanding the WAAS policies as a graph. In ratel go to schema and click "bulk edit" click the box "Also drop Schema and Types" and then type `DROP ALL` and click "drop all"
+* after the data has been cleared `bash waas_policy_etl.sh`
 
-_query to enter in the offline mode of ratel:_
 
-```graphql
-{
-  vm(func: has(name), first: 100){
-    rrn
-    name
-    imageId
-    vpc_id:  networkInterfaces {
-      vpcId
-    security_group:  groups {
-        groupId
-      }
-    network_association:  privateIpAddresses {
-      publicIp:  association {
-          publicIp
-        }
-      }
-    }
-    blockDeviceMappings {
-    ebs_volume:  ebs {
-        volumeId
-      }
-    }
-    iam_permissions: iam {
-     sourceCloudResourceRrn
-     sourceResourceName
-     destCloudServiceName
-    }
-    vulnerability {
-      normalizedName
-    }
-  }
-}
-```
+
 See the [Example writeup](./examples/jq-rdf-bash.md) for where I'd like to go with this
