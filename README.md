@@ -32,7 +32,7 @@ bash setup.sh
 
 * open browser and go to http://localhost:8001/?local
 
-### WAAS policy as Graph
+### WAAS policies as Graph
 
 
 * If you're interested in understanding the WAAS policies in a graphDB go to http://localhost:8001/?local
