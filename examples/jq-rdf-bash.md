@@ -12,13 +12,13 @@ Our goal is to figure out which keys relate are univerally unique. In this examp
 cat ./json/temp_config.json | jq '.data.items[] | {name: .name, id: .id, uid: ("_:" + .id)}'
 ```
 
-This is how the etl.sh script works. Jq runs into some issues if you try reusing the same key name. To get around this I simply added a number to the end of uid. Like uid, uid1, uid2, uid3, and so on. At before loading into dgraph we dump the json to a file with the set command around the array of objects like this: 
+This is how the etl.sh script works. Jq runs into some issues if you try reusing the same key name. To get around this I simply added a number to the end of uid. Like uid, uid1, uid2, uid3, and so on. Before loading into dgraph I dump the json to a file with the set command around the array of objects like this: 
 
 ```bash
 cat ./json/temp_config.json | jq '{set: [ .data.items[] | {name: .name, id: .id, uid: ("_:" + .id)}]}' > ./load.json
 ```
 
-After it's been written to a file we clean up the keys with a simple sed script/command
+After it's been written to a file we can clean up the keys with a simple sed script/command
 
 ```bash
 sed -i 's/uid[0-9]\{0,9\}/uid/g' ./load.json
