@@ -48,4 +48,13 @@ Above we can see the relationship between collections of assets, WAAS rules, api
 
 
 
-See the [Example writeup](./examples/jq-rdf-bash.md) for where I'd like to go with this
+See the [Example writeup](./examples/jq-rdf-bash.md) for a quick tutorial on how this was done. 
+
+For language specific ideas for those looking to collaborate see these links:
+
+* [python](https://dgraph.io/docs/clients/python/)
+* [golang](https://dgraph.io/docs/clients/go/)
+* [C#](https://dgraph.io/docs/clients/csharp/)
+* [JavaScript](https://dgraph.io/docs/clients/javascript/grpc/)
+
+
