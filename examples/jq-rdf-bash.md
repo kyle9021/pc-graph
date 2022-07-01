@@ -6,7 +6,7 @@ First run this:
 cat ./json/temp_config.json | jq '.data.items[] | {name: .name, id: .id}'
 ```
 
-Our goal is to figure out which keys relate are univerally unique. In this example we know it's the `.id` values. While an ec2 instance might share the same name across different aws accounts. They would not share the same `.id`. So before we load it into dgraph. Let's indicate that. 
+Our goal is to figure out which keys have values which are univerally unique. In this example we know it's the `.id` values. While an ec2 instance might share the same name across different aws accounts. They would not share the same `.id`. So before we load it into dgraph. Let's indicate that. 
 
 ```bash
 cat ./json/temp_config.json | jq '.data.items[] | {name: .name, id: .id, uid: ("_:" + .id)}'
