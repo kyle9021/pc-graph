@@ -1,4 +1,4 @@
-Assuming you'd do the below activity from root directory of this project after running the setup.sh script
+Assuming you'd do the below activity from the root directory of this project after running the setup.sh script
 ## JSON
 First run this:
 
