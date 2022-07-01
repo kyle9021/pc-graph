@@ -109,7 +109,7 @@ fi
 
 
 
-printf '%s\n%s\n%s\n%s\n' "#!/bin/sh" \
+printf '%s\n%s\n%s\n%s\n' "#!/usr/bin/env bash" \
                           "PC_APIURL=\"$PC_APIURL\"" \
                           "PC_ACCESSKEY=\"$PC_ACCESSKEY\"" \
                           "PC_SECRETKEY=\"$PC_SECRETKEY\"" > "$PATH_TO_SECRETS_FILE"
