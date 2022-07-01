@@ -3,7 +3,7 @@
 
 A open-source project built on [Dgraph](https://github.com/dgraph-io/dgraph)
 
-Pulls from the Prisma Cloud API all the aws ec2 instances and the following associated data points:
+Pulls from the [Prisma Cloud API](https://prisma.pan.dev/) all the aws ec2 instances and the following associated data points:
 
 * vulnerablities
 * public ip addresses
