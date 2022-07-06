@@ -73,3 +73,11 @@ loop_response_check () {
   fi
 }
 
+var_response_check () {
+  if [[ $(printf '%s' "$1" | jq -r '. | keys | @sh') == "'err'" ]]; then
+    echo "request response is assigned to an err value: $(printf '%s' "$1" | jq -r '.err')" >&2;
+  elif [ -z "$1" ]; then
+    echo "null value in response"
+  fi
+}
+
