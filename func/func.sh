@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # written by Kyle Butler
 # use to validate the prisma variable assignements in ./secrets/secrets
 
@@ -13,21 +13,42 @@ TL_CONSOLE_MATCH='^https\:\/\/(\w|\d|\.|\-|\_|\:|\/)+$'
 pce-var-check () {
 if [[ ! $PC_SECRETKEY =~ $PC_SECRETKEY_MATCH ]]
   then
-     echo "PC_SECRETKEY is not assigned to a valid value. Please recopy and reassign the variable in the ./secrets/secrets file and run again"
-     exit 1
+     printf '\n%s' "PC_SECRETKEY does not meet the regex validation check in the ./secrets/secrets file. Would you like to continue?"
+     read -r CONTINUE
+     if [ "$CONTINUE" != "${CONTINUE#[Yy]}" ]
+       then
+         printf '\n%s' "running script..."
+     else
+        printf '\n%s' "try running the setup.sh script"
+        exit 1
+     fi
 fi
 
 if [[ ! $PC_ACCESSKEY =~ $PC_ACCESSKEY_MATCH ]]
   then
-     echo "PC_ACCESSKEY is not assigned to a valid value. Please recopy and reassign the variable in the ./secrets/secrets file and run again"
-     exit 1
+     printf '\n%s' "PC_ACCESSKEY does not meet the regex validation check in the ./secrets/secrets file. Would you like to continue?"
+     read -r CONTINUE
+     if [ "$CONTINUE" != "${CONTINUE#[Yy]}" ]
+       then
+         printf '\n%s' "running script..."
+     else
+        printf '\n%s' "try running the setup.sh script"
+        exit 1
+     fi
 fi
 
 
 if [[ ! $PC_APIURL =~ $PC_APIURL_MATCH ]]
   then
-    echo "$PC_APIURL is not a valid value for PC_APIURL. Please recopy and reassign the variable in the ./secrets/secrets file and run again"
-    exit 1
+     printf '\n%s' "The Prisma Cloud api url does not meet the regex validation check in the ./secrets/secrets file. Would you like to continue?"
+     read -r CONTINUE
+     if [ "$CONTINUE" != "${CONTINUE#[Yy]}" ]
+       then
+         printf '\n%s' "running script..."
+     else
+        printf '\n%s' "try running the setup.sh script"
+        exit 1
+     fi
 fi
 }
 
@@ -35,19 +56,26 @@ fi
 tl-var-check () {
 if [[ ! $TL_CONSOLE =~ $TL_CONSOLE_MATCH ]]
   then
-    echo "$TL_CONSOLE is not a valid value for TL_CONSOLE. Please recopy and reassign the variable in the ./secrets/secrets file and run again"
-    exit 1
+     printf '\n%s' "Prisma Compute api url does not meet the regex validation check in the ./secrets/secrets file. Would you like to continue?"
+     read -r CONTINUE
+     if [ "$CONTINUE" != "${CONTINUE#[Yy]}" ]
+       then
+         printf '\n%s' "running script..."
+     else
+        printf '\n%s' "try running the setup.sh script"
+        exit 1
+     fi
 fi
 
 if [ -z "$TL_USER" ]
   then
-    echo "TL_USER variable is unassigned. Please ensure the the variable is assigned in the ./secrets/secrets file and run again"
+    echo "TL_USER variable is unassigned. Run the setup.sh script or fix the variable assignment in the secrets directory"
     exit 1
 fi
 
 if [ -z "$TL_PASSWORD" ]
   then
-    echo "TL_PASSWORD variable is unassigned. Please ensure the variable is assigned in the ./secrets/secrets file and run again"
+    echo "TL_PASSWORD variable is unassigned. Run the setup.sh script or fix the variable assignment in the secrets directory"
     exit 1
 fi
 }
@@ -58,8 +86,17 @@ quick_check () {
   if [ $res -eq 0 ]; then
     echo "$1 request succeeded"
   else
-    echo "$1 request failed error code: $res" >&2
+    echo "ERROR: $1 request failed error code: $res" >&2
     exit 1
+  fi
+}
+
+var_response_check () {
+  if [[ $(printf '%s' "$1" | jq -r '. | keys | @sh') == "'err'" ]]; then
+    echo "ERROR: request response is assigned to an err value: $(printf '%s' "$1" | jq -r '.err')" >&2
+    exit 1
+  elif [ -z "$1" ]; then
+    echo "INFO: null response body"
   fi
 }
 
@@ -72,12 +109,3 @@ loop_response_check () {
     echo "$1 request failed error code: $res" >&2
   fi
 }
-
-var_response_check () {
-  if [[ $(printf '%s' "$1" | jq -r '. | keys | @sh') == "'err'" ]]; then
-    echo "request response is assigned to an err value: $(printf '%s' "$1" | jq -r '.err')" >&2;
-  elif [ -z "$1" ]; then
-    echo "null value in response"
-  fi
-}
-
