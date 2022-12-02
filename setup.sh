@@ -38,10 +38,10 @@ if ! docker info > /dev/null 2>&1
                       "This script requires docker, please install and try again."
     exit 1
 fi
-if ! docker-compose version > /dev/null 2>&1
+if ! docker compose version > /dev/null 2>&1
   then
-    printf '%s\n%s\n' "ERROR: docker-compose is not available or not runnning." \
-                      "This script requires docker-compose, please install and try again."
+    printf '%s\n%s\n' "ERROR: docker compose is not available or not runnning." \
+                      "This script requires docker compose, please install and try again."
     exit 1
 fi
 
@@ -122,7 +122,7 @@ chmod 700 ./secrets/secrets
 printf '%s\n\n\n' "beginning dgraph deployment"
 
 
-docker-compose up -d
+docker compose up -d
 
 
 printf '%s\n\n\n%s\n\n\n%s\n\n' 'dgraph, ratel, and alpha are up!' 'Starting etl...' 'This could take a while to retrieve the data from Prisma Cloud'
